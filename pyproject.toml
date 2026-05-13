@@ -1,0 +1,52 @@
+[project]
+name = "time-tracker"
+version = "0.1.0"
+description = "CSV-backed working time tracker with a clickable TUI."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Obsidian Vault User" }]
+dependencies = [
+  "textual>=0.84.0",
+  "typer>=0.12.3",
+  "rich>=13.7.1",
+  "holidays>=0.52",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.0",
+  "pytest-asyncio>=0.23.8",
+  "pytest-cov>=5.0.0",
+  "ruff>=0.5.0",
+]
+
+[project.scripts]
+time-tracker = "time_tracker.cli:app"
+
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["time_tracker"]
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers --strict-config"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["time_tracker"]
+omit = ["*/time_tracker/tui/*"]
+
+[tool.coverage.report]
+fail_under = 85
+skip_empty = true

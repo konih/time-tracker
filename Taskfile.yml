@@ -1,0 +1,78 @@
+version: "3"
+
+vars:
+  VENV_DIR: .venv
+  PY: "{{.VENV_DIR}}/bin/python"
+  PIP: "{{.VENV_DIR}}/bin/pip"
+  RUFF: "{{.VENV_DIR}}/bin/ruff"
+  PYTEST: "{{.VENV_DIR}}/bin/pytest"
+
+tasks:
+  install:
+    desc: Create venv (if needed) + install deps
+    cmds:
+      - |
+        if [ ! -d "{{.VENV_DIR}}" ]; then
+          python3 -m venv "{{.VENV_DIR}}"
+        fi
+        if [ ! -x "{{.PIP}}" ]; then
+          rm -rf "{{.VENV_DIR}}"
+          python3 -m venv "{{.VENV_DIR}}"
+        fi
+      - "{{.PIP}} install -U pip"
+      - "{{.PIP}} install -e \".[dev]\""
+
+  ui:
+    desc: Run the clickable UI
+    deps: [install]
+    cmds:
+      - "{{.VENV_DIR}}/bin/time-tracker ui"
+
+  test:
+    desc: Run tests
+    deps: [install]
+    cmds:
+      - "{{.PYTEST}}"
+
+  cov:
+    desc: Run tests with coverage
+    deps: [install]
+    cmds:
+      - "{{.PYTEST}} --cov --cov-report=term-missing"
+
+  lint:
+    desc: Lint with ruff
+    deps: [install]
+    cmds:
+      - "{{.RUFF}} check ."
+
+  fmt:
+    desc: Format with ruff
+    deps: [install]
+    cmds:
+      - "{{.RUFF}} format ."
+
+  report:
+    desc: Monthly report (set MONTH=YYYY-MM)
+    deps: [install]
+    vars:
+      MONTH: "{{default \"2026-05\" .MONTH}}"
+    cmds:
+      - "{{.VENV_DIR}}/bin/time-tracker report {{.MONTH}}"
+
+  export:
+    desc: Export emoji-rich markdown (set MONTH=YYYY-MM OUT=export.md)
+    deps: [install]
+    vars:
+      MONTH: "{{default \"2026-05\" .MONTH}}"
+      OUT: "{{default \"export.md\" .OUT}}"
+    cmds:
+      - "{{.VENV_DIR}}/bin/time-tracker export-md {{.MONTH}} --out {{.OUT}}"
+
+  log:
+    desc: Quick-log today (set ARGS='8-12 13-17 home')
+    deps: [install]
+    vars:
+      ARGS: "{{default \"8-12 13-17 home\" .ARGS}}"
+    cmds:
+      - "{{.VENV_DIR}}/bin/time-tracker log {{.ARGS}}"

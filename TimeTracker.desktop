@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Time Tracker
+GenericName=Working time tracker
+Comment=CSV-backed working time tracker (terminal UI)
+Exec=/home/a242168/Projects/time-tracker/.venv/bin/time-tracker ui
+Path=/home/a242168/Projects/time-tracker
+Icon=utilities-terminal
+Terminal=true
+Categories=Office;Utility;
