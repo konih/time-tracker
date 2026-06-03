@@ -14,7 +14,7 @@ from textual.widgets import Button, DataTable, Footer, Header, Input, Label, Sel
 from time_tracker.calc import Calculator
 from time_tracker.config import AppConfig
 from time_tracker.csv_store import CsvStore
-from time_tracker.export_markdown import write_month_markdown
+from time_tracker.export_markdown import write_year_markdown
 from time_tracker.holidays_nrw import NRWHolidayService
 from time_tracker.model import Interval, IntervalKind, WorkLocation
 from time_tracker.parse import parse_time_range, parse_time_ranges
@@ -213,10 +213,10 @@ class TimeTrackerApp(App):
                 with Horizontal():
                     yield Button("Copy day", id="copy_day")
                     yield Button("Paste day", id="paste_day")
-                yield Label("Export month (Markdown)")
+                yield Label("Export year (Markdown)")
                 yield Input(
-                    id="export_month",
-                    placeholder="YYYY-MM",
+                    id="export_year",
+                    placeholder="YYYY",
                 )
                 yield Input(
                     id="export_path",
@@ -248,11 +248,9 @@ class TimeTrackerApp(App):
 
     def _render(self) -> None:
         self.query_one("#day_input", Input).value = self.selected_day.isoformat()
-        ym = f"{self.selected_day.year:04d}-{self.selected_day.month:02d}"
-        self.query_one("#export_month", Input).value = ym
-        self.query_one("#export_path", Input).value = str(
-            self._cfg.export_dir / f"{ym}.md"
-        )
+        y = f"{self.selected_day.year:04d}"
+        self.query_one("#export_year", Input).value = y
+        self.query_one("#export_path", Input).value = str(self._cfg.export_dir / f"{y}.md")
         table = self.query_one("#table", DataTable)
         table.clear()
         for it in sorted(self.intervals, key=lambda x: x.start):
@@ -401,19 +399,21 @@ class TimeTrackerApp(App):
             self._render()
             self.notify("Pasted day (not saved yet)", timeout=1.0)
         elif event.button.id == "export_md":
-            ym = self.query_one("#export_month", Input).value.strip()
+            y_raw = self.query_one("#export_year", Input).value.strip()
             out_raw = self.query_one("#export_path", Input).value.strip()
             try:
-                datetime.strptime(ym, "%Y-%m")
+                y = int(y_raw, 10)
+                if y < 1900 or y > 2200:
+                    raise ValueError
             except ValueError:
-                self.notify("Export month must be YYYY-MM", timeout=2.0)
+                self.notify("Export year must be YYYY (e.g. 2026)", timeout=2.0)
                 return
             if not out_raw:
                 self.notify("Set an output path", timeout=2.0)
                 return
             out = Path(out_raw).expanduser()
             try:
-                write_month_markdown(self._cfg, ym, out)
+                write_year_markdown(self._cfg, y, out)
             except OSError as e:
                 self.notify(f"Export failed: {e}", timeout=3.0)
                 return

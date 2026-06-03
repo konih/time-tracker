@@ -61,13 +61,13 @@ tasks:
       - "{{.VENV_DIR}}/bin/time-tracker report {{.MONTH}}"
 
   export:
-    desc: Export emoji-rich markdown (set MONTH=YYYY-MM OUT=export.md)
+    desc: Export yearly markdown (set YEAR=2026 OUT=export.md)
     deps: [install]
     vars:
-      MONTH: "{{default \"2026-05\" .MONTH}}"
+      YEAR: "{{default \"2026\" .YEAR}}"
       OUT: "{{default \"export.md\" .OUT}}"
     cmds:
-      - "{{.VENV_DIR}}/bin/time-tracker export-md {{.MONTH}} --out {{.OUT}}"
+      - "{{.VENV_DIR}}/bin/time-tracker export-md {{.YEAR}} --out {{.OUT}}"
 
   log:
     desc: Quick-log today (set ARGS='8-12 13-17 home')

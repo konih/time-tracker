@@ -9,7 +9,7 @@ import typer
 from time_tracker.calc import Calculator
 from time_tracker.config import AppConfig, load_app_config
 from time_tracker.csv_store import CsvStore
-from time_tracker.export_markdown import write_month_markdown
+from time_tracker.export_markdown import write_year_markdown
 from time_tracker.holidays_nrw import NRWHolidayService
 from time_tracker.location_parse import parse_location
 from time_tracker.model import Interval, IntervalKind
@@ -92,16 +92,16 @@ def report(
 @app.command("export-md")
 def export_md(
     ctx: typer.Context,
-    year_month: str = typer.Argument(..., help="Month in YYYY-MM format, e.g. 2026-05"),
+    year: int = typer.Argument(..., help="Calendar year, e.g. 2026"),
     out: Path = typer.Option(Path("export.md"), help="Output markdown file"),  # noqa: B008
     csv_path: Path = typer.Option(None, help="Path to CSV (overrides config csv_path)"),  # noqa: B008
 ):
-    """Export a month to a Markdown report (table format)."""
+    """Export a full calendar year to a Markdown report."""
     cfg: AppConfig = ctx.obj
     if csv_path is not None:
         cfg = replace(cfg, csv_path=csv_path)
 
-    write_month_markdown(cfg, year_month, out)
+    write_year_markdown(cfg, year, out)
     typer.echo(f"Wrote {out}")
 
 
