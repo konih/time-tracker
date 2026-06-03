@@ -53,6 +53,12 @@ class Calculator:
                     mins += m
         return mins
 
+    def worked_minutes_in_year(self, intervals: list[Interval], year: int) -> int:
+        return sum(self.worked_minutes_in_month(intervals, year, m) for m in range(1, 13))
+
+    def expected_minutes_in_year(self, year: int) -> int:
+        return sum(self.expected_minutes_in_month(year, m) for m in range(1, 13))
+
     def expected_minutes_for_day(self, d: date) -> int:
         """Expected working minutes on ``d`` (0 on weekends; holidays per NRW cache)."""
         if d.weekday() >= 5:

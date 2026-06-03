@@ -50,6 +50,15 @@ def test_expected_minutes_for_day_weekend_and_weekday(tmp_path: Path):
     assert calc.expected_minutes_for_day(fri) == round((37.7 / 5.0) * 60)
 
 
+def test_year_minutes_match_sum_of_months(tmp_path: Path):
+    cfg = AppConfig(cache_dir=tmp_path / ".cache", weekly_hours=37.7)
+    holidays = NRWHolidayService(cache_dir=cfg.cache_dir)
+    calc = Calculator(cfg, holidays)
+    y = 2026
+    from_months = sum(calc.expected_minutes_in_month(y, m) for m in range(1, 13))
+    assert calc.expected_minutes_in_year(y) == from_months
+
+
 def test_monthly_carry_cap(tmp_path: Path, monkeypatch):
     """
     We don't want this test to depend on the external holiday list.
