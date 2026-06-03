@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from time_tracker.config import AppConfig, load_app_config
+from time_tracker.config import AppConfig, discover_config_path, load_app_config
 
 
 def test_load_app_config_merges_paths_relative_to_file(tmp_path: Path):
@@ -61,3 +61,18 @@ def test_app_config_defaults():
     cfg = AppConfig()
     assert cfg.csv_path == Path("data/time_log.csv")
     assert cfg.half_day_holidays == frozenset()
+
+
+def test_discover_prefers_time_tracker_config_over_json(tmp_path: Path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "time-tracker.config.json").write_text(
+        json.dumps({"csv_path": "from_json.csv"}),
+        encoding="utf-8",
+    )
+    (tmp_path / "time-tracker.config").write_text(
+        json.dumps({"csv_path": "from_noext.csv"}),
+        encoding="utf-8",
+    )
+    assert discover_config_path() == (tmp_path / "time-tracker.config").resolve()
+    cfg = load_app_config()
+    assert cfg.csv_path == tmp_path / "from_noext.csv"

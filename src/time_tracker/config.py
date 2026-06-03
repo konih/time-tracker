@@ -31,7 +31,9 @@ def config_path_candidates() -> list[Path]:
         return [Path(env).expanduser()]
     xdg = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
     return [
+        Path("time-tracker.config"),
         Path("time-tracker.config.json"),
+        xdg / "time-tracker" / "config",
         xdg / "time-tracker" / "config.json",
     ]
 
@@ -48,7 +50,11 @@ def discover_config_path(explicit: Path | None = None) -> Path | None:
 
 
 def load_app_config(config_file: Path | None = None) -> AppConfig:
-    """Load config: defaults, optionally merged with the first JSON file found."""
+    """Load defaults merged with JSON from the first config file found.
+
+    Search order (unless ``TIME_TRACKER_CONFIG`` or ``--config`` is set): ``time-tracker.config``,
+    ``time-tracker.config.json``, then ``~/.config/time-tracker/config`` and ``config.json``.
+    """
     base = AppConfig()
     path = discover_config_path(config_file)
     if path is None:
