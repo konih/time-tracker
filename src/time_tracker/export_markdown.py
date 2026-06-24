@@ -94,13 +94,7 @@ def _location_label(loc: WorkLocation) -> str:
 
 
 def _day_off_note(d: date, holiday_service: NRWHolidayService) -> str | None:
-    if d.weekday() >= 5:
-        return "Weekend"
-    h = holiday_service.is_holiday(d)
-    if h is None:
-        return None
-    suffix = " (½ day)" if h.is_half_day else ""
-    return f"Holiday — {h.name}{suffix}"
+    return NRWHolidayService.day_off_note(d, holiday_service.is_holiday(d))
 
 
 @dataclass(frozen=True)

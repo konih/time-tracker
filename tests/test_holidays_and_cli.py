@@ -23,6 +23,23 @@ def test_holiday_cache_roundtrip(tmp_path: Path):
     # Load again from cache and ensure we still get same keys.
     data2 = svc.get_year(2026)
     assert set(data2.keys()) == set(data.keys())
+    assert "2026-05-25" in data2
+    assert data2["2026-05-25"].name == "Whit Monday"
+
+
+def test_holiday_cache_refreshes_stale_entries(tmp_path: Path):
+    cache_dir = tmp_path / ".cache"
+    cache_dir.mkdir(parents=True)
+    cache_file = cache_dir / "holidays_de_nw_2026.json"
+    # Stale cache missing Whit Monday
+    cache_file.write_text(
+        '{"2026-05-01": {"name": "Labor Day", "is_half_day": false}}',
+        encoding="utf-8",
+    )
+    svc = NRWHolidayService(cache_dir=cache_dir)
+    data = svc.get_year(2026)
+    assert "2026-05-25" in data
+    assert data["2026-05-25"].name == "Whit Monday"
 
 
 def test_cli_report_smoke(tmp_path: Path):

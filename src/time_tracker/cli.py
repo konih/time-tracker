@@ -78,7 +78,7 @@ def report(
 
     typer.echo(f"{year_month}")
     typer.echo(f"Worked:   {rep.worked_hours:.2f} h")
-    typer.echo(f"Expected: {rep.expected_hours:.2f} h (37.7h/week, NRW holidays)")
+    typer.echo(f"Expected: {rep.expected_hours:.2f} h ({cfg.weekly_hours:.1f}h/week, NRW holidays)")
     typer.echo(f"Delta:    {rep.delta_hours:.2f} h")
     typer.echo(f"Carry-in: {rep.carry_in_hours:.2f} h")
     typer.echo(f"Overtime: {rep.overtime_hours:.2f} h (carry-in + delta)")

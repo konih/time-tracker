@@ -14,7 +14,7 @@ class AppConfig:
     export_dir: Path = Path("exports")
     country: str = "DE"
     subdivision: str = "NW"  # NRW
-    weekly_hours: float = 37.7
+    weekly_hours: float = 37.5
     month_carry_cap_hours: float = 60.0
     year_carry_cap_hours: float = 25.0
     half_day_holidays: frozenset[str] = field(default_factory=frozenset)

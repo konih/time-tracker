@@ -26,6 +26,7 @@ Track work start/end, breaks, and location (home office, office sites, remote, b
 | `tests/` | Pytest suite |
 | `Taskfile.yml` | `task test`, `lint`, `fmt`, `cov`, `export`, … |
 | `time-tracker.config` | Local config (paths, caps; not committed by default) |
+| `.cursor/skills/time-tracker/` | Agent skill for logging, reports, export (`SKILL.md`) |
 
 ## Domain notes
 

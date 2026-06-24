@@ -6,7 +6,7 @@ Track daily work start/end, break start/end, and location (homeoffice/remote/off
 
 - Add/edit **1–3 work intervals per day** (and explicit break intervals)
 - Persist to CSV (human-readable, scriptable)
-- Monthly totals: hours worked, expected hours (37.7h/week baseline), overtime and carry-over
+- Monthly totals: hours worked, expected hours (37.5h/week baseline), overtime and carry-over
 - NRW (Germany) public holidays via [`holidays`](https://pypi.org/project/holidays/), cached per year
 - Configurable half-day public holidays
 
