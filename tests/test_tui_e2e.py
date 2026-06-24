@@ -13,6 +13,55 @@ from time_tracker.tui.app import ConfirmQuitScreen, TimeTrackerApp
 
 
 @pytest.mark.asyncio
+async def test_tui_mount_loads_today_from_csv(tmp_path: Path):
+    store = CsvStore(tmp_path / "time_log.csv")
+    today = date.today()
+    store.upsert_day(
+        today,
+        [
+            Interval(
+                day=today,
+                start=time(9, 0),
+                end=time(17, 0),
+                kind=IntervalKind.WORK,
+                location=WorkLocation.PORZ,
+            )
+        ],
+    )
+
+    app = TimeTrackerApp(store=store)
+    async with app.run_test():
+        assert len(app.intervals) == 1
+        assert app.intervals[0].location == WorkLocation.PORZ
+
+
+@pytest.mark.asyncio
+async def test_tui_save_survives_reload_from_disk(tmp_path: Path):
+    store = CsvStore(tmp_path / "time_log.csv")
+    today = date.today()
+
+    app = TimeTrackerApp(store=store)
+    async with app.run_test() as pilot:
+        app.intervals = [
+            Interval(
+                day=today,
+                start=time(8, 0),
+                end=time(16, 0),
+                kind=IntervalKind.WORK,
+                location=WorkLocation.KARLSWERK,
+            )
+        ]
+        app._render()
+        app._save_all()
+        await pilot.pause()
+
+    app2 = TimeTrackerApp(store=store)
+    async with app2.run_test():
+        assert len(app2.intervals) == 1
+        assert app2.intervals[0].location == WorkLocation.KARLSWERK
+
+
+@pytest.mark.asyncio
 async def test_tui_add_shows_inline_panel(tmp_path: Path):
     store = CsvStore(tmp_path / "time_log.csv")
     store.ensure_exists()

@@ -313,8 +313,8 @@ class TimeTrackerApp(App):
     def _load_from_store(self, day: date) -> list[Interval]:
         return [i for i in self.store.load_all() if i.day == day]
 
-    def _ensure_day_cached(self, day: date) -> None:
-        if day in self._working:
+    def _ensure_day_cached(self, day: date, *, force_disk: bool = False) -> None:
+        if not force_disk and day in self._working:
             return
         loaded = self._load_from_store(day)
         self._working[day] = loaded
@@ -322,6 +322,19 @@ class TimeTrackerApp(App):
 
     def _commit_current_day(self) -> None:
         self._working[self.selected_day] = list(self.intervals)
+
+    def _copy_intervals(self, intervals: list[Interval]) -> list[Interval]:
+        return [
+            Interval(
+                day=i.day,
+                start=i.start,
+                end=i.end,
+                kind=i.kind,
+                location=i.location,
+                note=i.note,
+            )
+            for i in intervals
+        ]
 
     def _dirty_days(self) -> list[date]:
         self._commit_current_day()
@@ -340,23 +353,20 @@ class TimeTrackerApp(App):
         self._ensure_day_cached(day)
         return self._working[day]
 
-    def _load_day(self, day: date) -> None:
-        self._commit_current_day()
+    def _load_day(self, day: date, *, force_disk: bool = False) -> None:
+        if day != self.selected_day:
+            self._commit_current_day()
         self._hide_add_panel()
         self.selected_day = day
-        self._ensure_day_cached(day)
-        self.intervals = [
-            Interval(
-                day=i.day,
-                start=i.start,
-                end=i.end,
-                kind=i.kind,
-                location=i.location,
-                note=i.note,
-            )
-            for i in self._working[day]
-        ]
+        self._ensure_day_cached(day, force_disk=force_disk)
+        self.intervals = self._copy_intervals(self._working[day])
         self._render()
+
+    def _reload_day_from_disk(self) -> None:
+        if self._has_unsaved_changes():
+            self.notify("Save or discard changes before reloading from disk", timeout=2.5)
+            return
+        self._load_day(self.selected_day, force_disk=True)
 
     def _shift_day(self, delta: int) -> None:
         self._load_day(self.selected_day + timedelta(days=delta))
@@ -610,7 +620,11 @@ class TimeTrackerApp(App):
             return
         for day in dirty:
             self.store.upsert_day(day, self._working[day])
-            self._baseline[day] = _interval_snapshot(self._working[day])
+            loaded = self._load_from_store(day)
+            self._working[day] = loaded
+            self._baseline[day] = _interval_snapshot(loaded)
+        if self.selected_day in dirty:
+            self.intervals = self._copy_intervals(self._working[self.selected_day])
         count = len(dirty)
         self.notify(f"Saved {count} day{'s' if count != 1 else ''}", timeout=1.5)
         self._render()
@@ -630,9 +644,14 @@ class TimeTrackerApp(App):
         if event.input.id == "day_input":
             raw = event.input.value.strip()
             try:
-                self._load_day(datetime.strptime(raw, "%Y-%m-%d").date())
+                day = datetime.strptime(raw, "%Y-%m-%d").date()
             except ValueError:
                 self.notify("Invalid date (use YYYY-MM-DD)", timeout=2.0)
+                return
+            if day == self.selected_day:
+                self._reload_day_from_disk()
+            else:
+                self._load_day(day)
             return
         if event.input.id == "add_quick" and self._add_panel_visible():
             self._submit_add_panel()
@@ -647,13 +666,21 @@ class TimeTrackerApp(App):
         elif event.button.id == "next_week":
             self.action_next_week()
         elif event.button.id == "today":
-            self._load_day(_today())
+            if self.selected_day == _today():
+                self._reload_day_from_disk()
+            else:
+                self._load_day(_today())
         elif event.button.id == "load":
             value = self.query_one("#day_input", Input).value.strip()
             try:
-                self._load_day(datetime.strptime(value, "%Y-%m-%d").date())
+                day = datetime.strptime(value, "%Y-%m-%d").date()
             except ValueError:
                 self.notify("Invalid date (use YYYY-MM-DD)", timeout=2.0)
+                return
+            if day == self.selected_day:
+                self._reload_day_from_disk()
+            else:
+                self._load_day(day)
         elif event.button.id == "add":
             self.action_add_interval()
         elif event.button.id == "add_submit":

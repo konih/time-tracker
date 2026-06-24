@@ -25,6 +25,8 @@ tasks:
   ui:
     desc: Run the clickable UI
     deps: [install]
+    env:
+      TIME_TRACKER_CONFIG: time-tracker.config
     cmds:
       - "{{.VENV_DIR}}/bin/time-tracker ui"
 
